@@ -1,4 +1,4 @@
-/Descriptors
+/Descriptors/
 /ImagesMany
 /Vlads
 /Descriptors
@@ -7,3 +7,4 @@
 /Backend
 /ImagesQuery
 .DS_Store
+/__pycache__

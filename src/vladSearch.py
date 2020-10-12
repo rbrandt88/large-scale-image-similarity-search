@@ -13,7 +13,6 @@ import faiss
 #Computer vision and machine learning approach with SIFT,K-Means, VLAD, PCA, Faiss, KNN, RANSAC
 class VladSearch():
 
-
     #initialize folder env
     def __init__(self, root, imagesPath, descriptorPCA = False, vladPCA=False, numDescriptors = 500):
         self.root = root
@@ -174,13 +173,11 @@ class VladSearch():
              
         else:
             X = items
-        #print(allArrays[0].reshape(1,-1).shape)
-        print(np.asarray(X[0]).shape)
+     
         pca = PCA(n_components=n_components)
         pca.fit(np.vstack(X))
         allPca = [pca.transform(a.reshape(1,-1)) for a in X]
    
-        print(allPca[0].shape)
         print("Complete")
         
         for i, a in enumerate(allPca):
@@ -219,7 +216,7 @@ class VladSearch():
     
         print("Done. Saved all ", len(allDescriptors)," Vlads with shape: ", v.shape)
         
-    #X : input all descriptors of an image 
+    #Compute VLAD representation for a single image
     def computeVlad(self, X, kmeans):
         predictedLabels = kmeans.predict(X)
         centers = kmeans.cluster_centers_
@@ -229,7 +226,6 @@ class VladSearch():
         m,d = X.shape
         V = np.zeros([k,d])
         #computing the differences
-
         
         for i in range(k):
             # if there is at least one descriptor in that cluster
@@ -238,7 +234,7 @@ class VladSearch():
                 V[i]=np.sum(X[predictedLabels==i,:]-centers[i],axis=0)
 
         V = V.flatten()
-        V = np.sign(V)*np.sqrt(np.abs(V)) # power normalization, also called square-rooting normalization
+        V = np.sign(V)*np.sqrt(np.abs(V)) # power normalization
         V = V/np.sqrt(np.dot(V,V))    # L2 normalize
         
         #V = V / np.linalg.norm(V)
@@ -248,6 +244,7 @@ class VladSearch():
         return V
 
     #Create Faiss index for fast ANN search
+    #use faiss.IndexIVFFlat for a larger index
     def createIndex(self):
         print("Creating index...")
         
@@ -276,8 +273,8 @@ class VladSearch():
     
     #Run the whole pipeline. Create the Faiss of VLADs
     def all(self):
-        #self.extractAll()
-        #self.kmeans()
+        self.extractAll()
+        self.kmeans()
         self.computeVlads()
         if self.vladPCA == True: 
             self.applyPcaOnAll(self.vladsPath, n_components = 512,keypoints=False)
@@ -319,7 +316,7 @@ class VladSearch():
             descriptors.append(d)
 
         scores = np.zeros(len(descriptors))
-        #print(scores)
+
         # Get matching coordinates using kNN algorithm
         pairs = [
             [(queryKps[q].pt, keypoints[i][t].pt)
@@ -372,25 +369,28 @@ class VladSearch():
    
         index = faiss.read_index(self.indexPath)
         extractor = cv2.xfeatures2d.SIFT_create(self.numDescriptors)
+
+        #extract keypoints and descriptors
         kps, des = self.extract(imagePath,extractor, crop=False)
         
    
-            
+        # create VLAD representation  
         v = self.computeVlad(des,kmeans)
  
         v = v.astype('float32').reshape(1,-1)
 
+        #apply PCA if True
         if self.vladPCA == True: 
             pca = self.load(self.pcaPath)
             v = pca.transform(v).astype('float32')
         
-        
+        #ANN for most similar images
         d, indexes = index.search(v, topKResults) 
         #print(d, indexes)
 
         resultUris = [self.imageUris[i] for i in indexes[0]]
         
-        
+        #KNN reranking and RANSAC spacial verification
         topIndexes = self.spacialVerification(resultUris, des ,kps)
         
         if len(topIndexes) > 0: 

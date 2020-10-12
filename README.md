@@ -7,6 +7,10 @@ Search by image and return closely matched images. Can search 15,000 Amazon book
 
 The images and data are proprietary and are not included in this repository
 
+# Demo Website:
+https://www.brandtdev.com/large-scale-image-search
+
+
 # Key Learning Objectives
 
 Computer Vision techniques with OpenCV (SIFT, RANSAC, Filtering, VLAD)
@@ -19,8 +23,6 @@ Front end design with React, HTML, CSS
 
 Implementing research papers
 
-## Demo Website:
-https://www.brandtdev.com/large-scale-image-search
 
 
 # Research Papers: 

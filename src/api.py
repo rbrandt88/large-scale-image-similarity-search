@@ -12,14 +12,13 @@ CORS(app)
 @app.route('/api/query', methods=['POST'])
 def queryUrl():
 
-	#check format of image
-
-	#download image 
 	print('___________________________')
 	print(flask.request.json)
 	
 	imageUrl = flask.request.json["image"]
-	queryImgPath = '/Users/ryanbrandt/Documents/VladVisualSearch/ImagesQuery'
+	queryImgPath = '/Users/ryanbrandt/Documents/VladVisualSearch/ImagesQuery/querImg'
+
+	#download image 
 	urllib.request.urlretrieve(imageUrl, queryImgPath)
 
 	#query
@@ -45,6 +44,7 @@ def queryUrl():
 
 	#return only top 15
 	return flask.jsonify({'images': images[:15]})
+
 
 #for test purposes only
 @app.route('/api/test/1', methods=['GET'])

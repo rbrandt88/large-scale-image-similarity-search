@@ -7,16 +7,16 @@ Search by image and return closely matched images. Can search 15,000 Amazon book
 
 # Key Learning Objectives
 
--Computer Vision techniques with OpenCV (SIFT, RANSAC, Filtering, VLAD)
--Machine Learning techniques with Scikit-Learn (K-Means, KNN, ANN, PCA)
--API developement
--Front end design with React, HTML, CSS
--Implementing research papers
+Computer Vision techniques with OpenCV (SIFT, RANSAC, Filtering, VLAD)
+Machine Learning techniques with Scikit-Learn (K-Means, KNN, ANN, PCA)
+API developement
+Front end design with React, HTML, CSS
+Implementing research papers
 
 Demo Website:
 https://www.brandtdev.com/large-scale-image-search
 
-The data set is not included in this repository
+The images and data are not included in this repository
 
 # Research Papers: 
 

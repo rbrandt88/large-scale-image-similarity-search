@@ -10,9 +10,11 @@ import time
 import faiss 
 
 
-#Computer vision and machine learning approach with SIFT,K-Means, VLAD, PCA, Faiss
+#Computer vision and machine learning approach with SIFT,K-Means, VLAD, PCA, Faiss, KNN, RANSAC
 class VladSearch():
-    
+
+
+    #initialize folder env
     def __init__(self, root, imagesPath, descriptorPCA = False, vladPCA=False, numDescriptors = 500):
         self.root = root
         self.imagesPath = imagesPath
@@ -21,8 +23,6 @@ class VladSearch():
         self.numDescriptors = numDescriptors
         self.descriptorPCA = descriptorPCA
         self.vladPCA = vladPCA
-        
-        #self.imagesPath = '/Users/ryanbrandt/Documents/WebScrape/BookPictures/'
    
         self.descriptorsPath = os.path.join(root,"Descriptors")
         self.vladsPath = os.path.join(root,"Vlads")
@@ -64,13 +64,6 @@ class VladSearch():
                     print(uri + " was deleted")
 
 
-    def loadAllDescriptorsAndKeypoints(self,keypoints):
-        
-        kps = [
-                cv2.KeyPoint(x=t[0][0], y=t[0][1], _size=t[1], _angle=t[2],
-                             _response=t[3], _octave=t[4], _class_id=t[5])
-                for k in kps
-            ]
     #Utility: save single file
     def save(self, item, uri):
         with open(uri, 'wb') as pkl:
@@ -136,7 +129,7 @@ class VladSearch():
         plt.imshow(crop,),plt.show()
         return crop
 
-    #extract sift features, rootsift is on 
+    #extract keypoints and sift features, rootsift is on 
     def extract(self, uri, extractor, resize=True, rootsift=True, crop=False):
         gray = cv2.imread(uri, cv2.IMREAD_GRAYSCALE)
         if resize == True:
@@ -172,10 +165,7 @@ class VladSearch():
          
         print("Done. All ", len(uris), " feature arrays saved")
             
-    #apply dementionality reduction on sift features from 128 to 64 dementions to save space
-    #overwrite original sift descriptors and store the new length 64 representation 
-    #might reqire batch processing for large data
-    #whitening on!
+    #Apply dementionality reduction with PCA
     def applyPcaOnAll(self, folder, n_components = 64, keypoints=True):
         print("Computing PCA on all uris in folder: ", folder)
         items, uris = self.loadAll(folder, keypoints=keypoints)
@@ -257,6 +247,7 @@ class VladSearch():
         
         return V
 
+    #Create Faiss index for fast ANN search
     def createIndex(self):
         print("Creating index...")
         
@@ -283,7 +274,7 @@ class VladSearch():
         print("Done. Saved ",index.ntotal," vlads to the index")
    
     
-    #create all Vlads and store them in faiss database
+    #Run the whole pipeline. Create the Faiss of VLADs
     def all(self):
         #self.extractAll()
         #self.kmeans()
@@ -304,6 +295,7 @@ class VladSearch():
                 if first.distance < ratio * second.distance]
         return matches
 
+    #RANSAC spacial verification 
     def filter(self, pt_qt):
         if len(pt_qt) > 0:
             pt_q, pt_t = zip(*pt_qt)
@@ -315,6 +307,7 @@ class VladSearch():
         else:
             return []
 
+    #KNN and RANSAC on candidate images
     def spacialVerification(self, resultUris,queryDes, queryKps):
    
         keypoints , descriptors = [], []
@@ -341,10 +334,7 @@ class VladSearch():
         
 
         top = np.argwhere(scores>20.0)
-        #if np.amax(scores) > 20.0: 
-        #    print(scores)
-         #   print(np.amax(scores))
-            #return np.argmax(scores)
+  
         top = list(top.flatten())
 
         if len(top) > 0:
@@ -355,7 +345,7 @@ class VladSearch():
  
      
 
-
+    #display results
     def displayMatches(self,uris, q_uri):
         plotAmount = len(uris) + 1 
         fig, axs = plt.subplots(1,plotAmount,figsize=(30, 30))
@@ -374,6 +364,8 @@ class VladSearch():
         plt.tight_layout()
         plt.show()
 
+
+    #Search for similar images 
     def query(self, imagePath, topKResults = 30, display= False):
 
         kmeans = self.load(self.kmeansPath)
@@ -412,35 +404,15 @@ class VladSearch():
             return []
         
         
-        #return resultUris
+
 
      
-
-    
-
+#save object utility function
 def saveObj(item, uri):
     with open(uri, 'wb') as pkl:
         pickle.dump(item, pkl)
 
 
-root = '/Users/ryanbrandt/Documents/VladVisualSearch'
-imagesPath = '/Users/ryanbrandt/Documents/VladVisualSearch/ImagesMany'
-#vs = VladSearch(root, imagesPath, vladPCA=False)
-#vs.cleanImages(delete=True)
-#vs.all()
-#saveObj(vs,vs.objPath)
 
-queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/campr2.jpg'
-queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/absjava.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/chemccll.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/anatomyLab.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/bioh1.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/brsr.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/chemspp.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/psci.jpg'
-#\queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/worldofart.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/lifessdd.jpg'
-#queryPath = '/Users/ryanbrandt/Documents/VladVisualSearch/Test/campr2.jpg'
-#vs.query(queryPath,display= True)
 
 
